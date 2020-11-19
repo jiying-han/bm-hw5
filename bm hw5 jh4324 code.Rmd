@@ -1,0 +1,104 @@
+---
+title: "bm_hw5_jh4324"
+author: "Jiying Han"
+date: "11/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(arsenal) 
+library(stats)
+library(BSDA)
+library(broom)
+```
+
+
+Read and tidy the dataset 
+```{r}
+antibody_df = 
+  read.csv("./Antibodies copy.csv") %>% 
+  filter(Smell != "Unanswered/Others") %>% 
+  mutate(
+    AgeCategory = as.factor(AgeCategory),
+    Antibody_IgM = as.numeric(Antibody_IgM),
+    Smell = as.factor(Smell),
+    Gender = as.factor(Gender)
+  ) %>% 
+   drop_na(Antibody_IgM,Smell)
+   
+norm_vec = 
+  antibody_df %>% 
+  filter(Smell == "Normal") %>% 
+  select(Antibody_IgM)
+  
+alter_vec = 
+  antibody_df %>% 
+  filter(Smell == "Altered") %>% 
+  select(Antibody_IgM) 
+
+
+n1 = nrow(norm_vec)
+n2 = nrow(alter_vec)
+t1s = (1/2)*n1*(n1+1) 
+t1h = n1*n2+(1/2)*n1*(n1+1)
+et1 = (1/2)*n1*(n1+n2+1) 
+
+par(mfrow=c(2,2))
+hist(norm_vec$Antibody_IgM, xlab="Antibody_IgM", freq=T, main="Normal smell patients' antibody")
+hist(alter_vec$Antibody_IgM, xlab="Antibody_IgM", freq=T, main="Altered smell patients' antibody")
+
+qqnorm(norm_vec$Antibody_IgM, col=2, pch=19, cex=1.5)
+qqline(norm_vec$Antibody_IgM, col = 1,lwd=2,lty=2)
+
+qqnorm(alter_vec$Antibody_IgM, col=2, pch=19, cex=1.5)
+qqline(alter_vec$Antibody_IgM, col = 1,lwd=2,lty=2)
+
+wilcox.test(norm_vec$Antibody_IgM, alter_vec$Antibody_IgM, mu=0)
+```
+
+
+
+# Problem 3
+
+```{r}
+gpa_df =
+  read.csv("./GPA.csv") %>% 
+  janitor::clean_names()
+
+# a scatter plot with regression line overlaid
+gpa_df %>% 
+  ggplot(aes(x = act,y = gpa))+ geom_point(color = "blue") +
+  geom_smooth(method='lm', se=TRUE, color='red') +
+  theme_bw(base_size=20) +
+  labs(x="Student’s ACT score", y="Student’s GPA at the end of the freshman year ")
+
+
+
+# regression test
+reg_stu = lm(gpa_df$gpa~gpa_df$act)
+summary(reg_stu)
+
+t_stat = (0.03883-0)/0.01277
+n = nrow(gpa_df)
+qt(0.975,118)
+
+# 95% CIs for slope
+mean(gpa_df$act)
+confint(reg_stu,level=0.95)
+
+# 95% CIs of mean freshman GPA for students whose ACT test score is 28
+act28_df = 
+  gpa_df %>% 
+  filter(act == 28)  
+# 
+reg_act28 = lm(act28_df$gpa~act28_df$act)
+summary(reg_act28)
+# confidence interval function
+confint(reg_act28,level=0.95)
+  
+
+```
+
