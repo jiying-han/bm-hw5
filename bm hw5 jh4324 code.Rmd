@@ -1,7 +1,6 @@
 ---
-title: "bm_hw5_jh4324"
+title: "BM_hw5_jh4324"
 author: "Jiying Han"
-date: "11/17/2020"
 output: html_document
 ---
 
@@ -56,7 +55,9 @@ qqline(norm_vec$Antibody_IgM, col = 1,lwd=2,lty=2)
 qqnorm(alter_vec$Antibody_IgM, col=2, pch=19, cex=1.5)
 qqline(alter_vec$Antibody_IgM, col = 1,lwd=2,lty=2)
 
-wilcox.test(norm_vec$Antibody_IgM, alter_vec$Antibody_IgM, mu=0)
+res = wilcox.test(norm_vec$Antibody_IgM, alter_vec$Antibody_IgM, mu=0)
+res$statistic = res$statistic + n1*(n1+1)/2
+
 ```
 
 
@@ -76,9 +77,8 @@ gpa_df %>%
   labs(x="Student’s ACT score", y="Student’s GPA at the end of the freshman year ")
 
 
-
 # regression test
-reg_stu = lm(gpa_df$gpa~gpa_df$act)
+reg_stu = lm(gpa~act,gpa_df)
 summary(reg_stu)
 
 t_stat = (0.03883-0)/0.01277
@@ -89,16 +89,13 @@ qt(0.975,118)
 mean(gpa_df$act)
 confint(reg_stu,level=0.95)
 
-# 95% CIs of mean freshman GPA for students whose ACT test score is 28
-act28_df = 
-  gpa_df %>% 
-  filter(act == 28)  
-# 
-reg_act28 = lm(act28_df$gpa~act28_df$act)
-summary(reg_act28)
-# confidence interval function
-confint(reg_act28,level=0.95)
-  
+# 95% CIs of mean freshman GPA for students whose ACT test score is 28 using predict
+new.act = tibble(act = c(28))
+
+predict(reg_stu, newdata = new.act, interval = "confidence", level = 0.95)
+predict(reg_stu, newdata = new.act, interval = "prediction", level = 0.95)
 
 ```
+
+
 
